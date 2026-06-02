@@ -1,4 +1,4 @@
-# LAB-01: First Image and First Container (Node.js Edition)
+# TUTORIAL-01: First Image and First Container (Node.js Edition)
 
 ## Learning Objectives
 
