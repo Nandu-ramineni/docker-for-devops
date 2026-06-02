@@ -1,8 +1,3 @@
-Here is your **clean, professional, emoji-free README.md**:
-
----
-
-```markdown
 # Tutorial-02: Bind Mounts & Volumes Across Containers with NGINX + Node.js (Production-Grade)
 
 ---
