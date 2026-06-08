@@ -1,0 +1,72 @@
+
+services:
+  
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy01
+    ports:
+      - "8000:80"
+    
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - frontend-net
+    depends_on:
+      node-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  node-api:
+    build: ./server
+    container_name: nodejs-api
+    # No ports published to host — NGINX reaches it through frontend-net.
+    # redis and mongodb reach it (and it them) through backend-net.
+    networks:
+      - frontend-net
+      - backend-net
+
+    
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-container
+    # No ports published. Only containers on backend-net can reach this.
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    # No ports published. Only containers on backend-net can reach this.
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend-net
+    restart: unless-stopped
+
+networks:
+  frontend-net:
+    driver: bridge
+    # NGINX and node-api live here.
+    # Containers on this network cannot reach backend-net services.
+
+  backend-net:
+    driver: bridge
+    # node-api, redis, and mongodb live here.
+    # Mark as internal to block all outbound internet access from database tier.
+    internal: true
+
+volumes:
+  mongo-data:
+
